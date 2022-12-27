@@ -1,0 +1,211 @@
+<?php
+
+  function hitung_fitness_penalty($dosen_keilmuan, $mahasiswa_keilmuan, $kuota_dosen) {
+    // Hitung jumlah kecocokan antara atribut keilmuan dosen dengan atribut topik penelitian mahasiswa
+    $cocok = array_intersect($dosen_keilmuan, $mahasiswa_keilmuan);
+
+    // Hitung sisa mahasiswa diluar topik keilmuan dosen
+    $tidak_cocok = array_diff($mahasiswa_keilmuan, $cocok);
+
+    // Hitung jumlah mahasiswa yang cocok tapi belum mendapatkan dosen pembimbing
+
+    $belum_dapat_dosen = 0;
+    foreach ($mahasiswa_keilmuan as $mahasiswa) {
+      if (in_array($mahasiswa, $dosen_keilmuan)) {
+          $belum_dapat_dosen++;
+      }
+    }
+    
+    // Hitung gabungan dari mahasiswa yang tidak mendapatkan kuota ditambah dengan mahasiswa diluar bidang keilmuan dosen
+    $penalty = array_sum([count($cocok), count($tidak_cocok)]);
+
+    // Hitung fitness penalty
+    $penalty_fitness = 1 / (1 + $penalty + ($belum_dapat_dosen-$kuota_dosen));
+    
+    return $penalty_fitness;
+  }
+
+  // fungsi urutkan fitness terbesar
+  function urutkan_fitness($penalties) {
+    // Urutkan array penalties berdasarkan nilai penalty yang terbesar
+    usort($penalties, function($a, $b) {
+      return $b - $a;
+    });
+
+    return $penalties;
+  }
+
+    //fungsi mengambil dua fitness terbesar dengan roulette wheel menampilkan nama individu
+    //perbedaanya ada di return
+    function roullete_wheel($penalty_1, $penalty_2, $penalty_3, $penalty_4) {
+    // Simpan $penalty_1 dan $penalty_2 ke dalam array
+    $penalties = [$penalty_1, $penalty_2, $penalty_3, $penalty_4];
+
+    //$penalties = urutkan_fitness($penalties);
+    $penalty_1 = $penalties[0];
+    $penalty_2 = $penalties[1];
+    $penalty_3 = $penalties[2];
+    $penalty_4 = $penalties[3];
+
+    // Hitung total dari semua elemen di dalam array $penalties
+    $total_penalties = array_sum($penalties);
+
+    // Hitung $probability dari setiap individu
+    $probability_1 = $penalties[0] / $total_penalties;
+    $probability_2 = $penalties[1] / $total_penalties;
+    $probability_3 = $penalties[2] / $total_penalties;
+    $probability_4 = $penalties[3] / $total_penalties;
+
+    // Buat bilangan acak antara 0 dan 1
+    $random_number = mt_rand(0, 1000000) / 1000000;
+
+    // Bandingkan bilangan acak dengan probability setiap individu
+    if ($random_number <= $probability_1) {
+    // Individu 1 terpilih
+    return 1;
+    } elseif ($random_number <= $probability_1 + $probability_2) {
+    // Individu 2 terpilih
+    return 2;
+    } elseif ($random_number <= $probability_1 + $probability_2 + $probability_3) {
+    // Individu 3 terpilih
+    return 3;
+    } else {
+    // Individu 4 terpilih
+    return 4;
+    }
+  }
+
+  function crossover($mahasiswa_keilmuan_1, $dosen_keilmuan_2, $mahasiswa_keilmuan_2, $posisi_crossover) {
+  // Buat variabel sementara untuk menampung elemen yang akan ditukar
+  $temp = $mahasiswa_keilmuan_1[$posisi_crossover];
+
+  // Tukar elemen pada posisi $posisi_crossover pada array $mahasiswa_keilmuan_1 dengan elemen pada posisi yang sama pada array $mahasiswa_keilmuan_2
+  $mahasiswa_keilmuan_1[$posisi_crossover] = $mahasiswa_keilmuan_2[$posisi_crossover];
+  $mahasiswa_keilmuan_2[$posisi_crossover] = $temp;
+
+  // Kembalikan hasil crossover dalam bentuk array
+  return [$dosen_keilmuan_1, $mahasiswa_keilmuan_1, $dosen_keilmuan_2, $mahasiswa_keilmuan_2];
+  }
+
+
+
+  // Bangkitkan Populasi Beserta Nilai Fitnesnya
+  echo '<table>';
+  echo '<tr>';
+  echo '<th>Nama Dosen</th>';
+  echo '<th>Nama Mahasiswa</th>';
+  echo '<th>Fitnes</th>';
+  echo '</tr>';
+
+  //Array untuk Individu 1
+  $dosen_keilmuan_1 = ['information system', 'business intelligence'];
+  $mahasiswa_keilmuan_1 = ['information system', 
+                           'information system', 
+                           'information system', 
+                           'business intelligence', 
+                           'machine learning'];
+
+  $kuota_dosen_1 = 2;
+  $penalty_1 = hitung_fitness_penalty($dosen_keilmuan_1, $mahasiswa_keilmuan_1, $kuota_dosen_1);
+
+  //Array Untuk individu 2
+  $dosen_keilmuan_2 = ['information system'];
+  $mahasiswa_keilmuan_2 = ['information system', 
+                           'bisiness intelligence', 
+                           'business intelligence', 
+                           'in-formation system', 
+                           'information system'];
+  $kuota_dosen_2 = 2;
+  $penalty_2 = hitung_fitness_penalty($dosen_keilmuan_2, $mahasiswa_keilmuan_2, $kuota_dosen_2);
+
+
+  //Array untuk Individu 3
+  $dosen_keilmuan_3 = ['machine_learning'];
+  $mahasiswa_keilmuan_3 = ['information system', 
+                           'machine_learning', 
+                           'business_intelligence', 
+                           'machine_learning', 
+                           'machine learning'];
+
+  $kuota_dosen_3 = 2;
+  $penalty_3 = hitung_fitness_penalty($dosen_keilmuan_3, $mahasiswa_keilmuan_3, $kuota_dosen_3);
+
+   //Array Untuk individu 4
+  $dosen_keilmuan_4 = ['business_intelligence'];
+  $mahasiswa_keilmuan_4 = ['machine_learning', 
+                           'business intelligence', 
+                           'business intelligence', 
+                           'in-formation system', 
+                           'information system'];
+  $kuota_dosen_4 = 2;
+  $penalty_4 = hitung_fitness_penalty($dosen_keilmuan_4, $mahasiswa_keilmuan_4, $kuota_dosen_4);
+  
+  // Hasil Dari Populasi dan Nilai Fitnessnya
+
+  echo "<tr>";
+  echo "<td>Dosen 1</td>";
+  echo "<td>Mahasiswa 1</td>";
+  echo "<td>Penalty: $penalty_1</td>";
+  echo "</tr>";
+
+  echo "<tr>";
+  echo "<td>Dosen 2</td>";
+  echo "<td>Mahasiswa 1</td>";
+  echo "<td>Penalty: $penalty_2</td>";
+  echo "</tr>";
+
+  echo "<tr>";
+  echo "<td>Dosen 3</td>";
+  echo "<td>Mahasiswa 1</td>";
+  echo "<td>Penalty: $penalty_3</td>";
+  echo "</tr>";
+
+  echo "<tr>";
+  echo "<td>Dosen 4</td>";
+  echo "<td>Mahasiswa 1</td>";
+  echo "<td>Penalty: $penalty_4</td>";
+  echo "</tr>";
+
+  $penalties = [$penalty_1, $penalty_2, $penalty_3, $penalty_4];
+  $penalties = urutkan_fitness($penalties);
+
+  foreach ($penalties as $penalty) {
+  echo $penalty . "<br>";
+  }
+
+  $individu_terpilih = roullete_wheel($penalty_1, $penalty_2, $penalty_3, $penalty_4);
+
+  for ($i=0; $i<2; $i++) {
+  $selected_index = roullete_wheel($penalty_1, $penalty_2, $penalty_3, $penalty_4);
+  $selected_penalties[] = $penalties[$selected_index];
+
+  echo "individu terplih: ".$selected_index.'<br>';
+
+  }
+
+  // Contoh penggunaan fungsi crossover
+  $posisi_crossover = 3;
+  $crossover_result = crossover($dosen_keilmuan_1, $mahasiswa_keilmuan_1, $dosen_keilmuan_2, $mahasiswa_keilmuan_2, $posisi_crossover);
+  $dosen_keilmuan_1_baru = $crossover_result[0];
+  $mahasiswa_keilmuan_1_baru = $crossover_result[1];
+  $dosen_keilmuan_2_baru = $crossover_result[2];
+  $mahasiswa_keilmuan_2_baru = $crossover_result[3];
+
+
+  echo '<h1>Hasil Crossover</h1>';
+  echo '<tr>';
+  echo "<td>Child</td>";
+  echo "<td>Dosen: " . implode(', ', $dosen_keilmuan_1_baru) . "</td>";
+  echo "<td>Mahasiswa: " . implode(', ', $mahasiswa_keilmuan_1_baru) . "</td>";
+  echo "</tr>";
+
+  echo '<tr>';
+  echo "<td>Child</td>";
+  echo "<td>Dosen: " . implode(', ', $dosen_keilmuan_2_baru) . "</td>";
+  echo "<td>Mahasiswa: " . implode(', ', $mahasiswa_keilmuan_2_baru) . "</td>";
+  echo "</tr>";
+
+  echo '</table>';
+
+
+?>
