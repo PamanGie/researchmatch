@@ -1,0 +1,166 @@
+<?php
+
+function generate_populasi($jumlah_dosen, $jumlah_mahasiswa, $bidang_keilmuan_dosen) {
+  // Inisialisasi array untuk menyimpan populasi
+  $populasi = [];
+
+  // Generate individu-individu pada populasi
+  for ($i = 0; $i < $jumlah_dosen; $i++) {
+    // Buat kromosom baru
+    $kromosom = [];
+
+    // Generate informasi dosen pada kromosom
+    $kromosom['dosen'] = "Dosen " . ($i + 1);
+    $kromosom['bidang_keilmuan'] = $bidang_keilmuan_dosen[$i];
+    $kromosom['kuota'] = mt_rand(1, $jumlah_mahasiswa);
+
+    // Generate informasi mahasiswa pada kromosom
+    $kromosom['mahasiswa'] = [];
+    for ($j = 0; $j < $jumlah_mahasiswa; $j++) {
+      $kromosom['mahasiswa'][] = "Mahasiswa " . ($j + 1);
+    }
+
+    // Tambahkan kromosom baru ke dalam populasi
+    $populasi[] = $kromosom;
+  }
+
+  return $populasi;
+}
+
+$jumlah_dosen = 5;
+$jumlah_mahasiswa = 10;
+$bidang_keilmuan_dosen = ['Information System', 'Business Intelligence', 'Computer Science', 'Data Science', 'Software Engineering'];
+
+$populasi = generate_populasi($jumlah_dosen, $jumlah_mahasiswa, $bidang_keilmuan_dosen);
+
+function tampilkan_populasi($populasi) {
+  // Buat tabel HTML
+  echo "<table border='1'>";
+  echo "<table>";
+  echo "<tr>";
+  echo "<th>Kromosom</th>";
+  echo "<th>Dosen</th>";
+  echo "<th>Kuota</th>";
+  echo "<th>Bidang Keilmuan</th>";
+  echo "<th>Mahasiswa</th>";
+  echo "<th>Topik Skripsi</th>";
+  echo "</tr>";
+
+  // Tampilkan setiap kromosom dalam populasi
+  foreach ($populasi as $kromosom => $detail) {
+  echo "<table border='1'>";
+  echo "<tr>";
+  echo "<td>" . $kromosom . "</td>";
+  echo "<td>" . $detail['dosen'] . "</td>";
+  echo "<td>" . $detail['kuota'] . "</td>";
+  echo "<td>" . implode(", ", $detail['bidang_keilmuan']) . "</td>";
+  echo "<td>";
+  foreach ($detail['mahasiswa'] as $mahasiswa => $topik) {
+  echo $mahasiswa . ": " . $topik . "<br>";
+  }
+  echo "</td>";
+  echo "</tr>";
+  }
+
+  echo "</table>";
+  }
+
+ function fitnessPenalty($populasi) {
+    $hasil = [];
+    echo "<table border='1'>";
+    echo "<tr><th>No.</th><th>Dosen</th><th>Kuota</th><th>Bidang Keilmuan</th><th>Mahasiswa</th><th>Fitness</th></tr>";
+    foreach ($populasi as $key => $value) {
+    $penalty = 0;
+    $belum_dosen = 0;
+    echo "<tr>";
+    echo "<td>" . $key . "</td>";
+    echo "<td>" . $value['dosen'] . "</td>";
+    echo "<td>" . $value['kuota'] . "</td>";
+    echo "<td>" . implode(', ', $value['bidang_keilmuan']) . "</td>";
+    echo "<td>";
+    foreach ($value['mahasiswa'] as $nama => $bidang) {
+    echo $nama . " (" . $bidang . ")<br>";
+    if (!in_array($bidang, $value['bidang_keilmuan'])) {
+    $penalty++;
+    }
+    if (count($value['mahasiswa']) > $value['kuota']) {
+    $belum_dosen++;
+    }
+    }
+    echo "</td>";
+    $hasil[$key] = 1 / (1 + $penalty + $belum_dosen);
+    echo "<td>" . $hasil[$key] . "</td>";
+    echo "</tr>";
+    }
+    echo "</table>";
+    return $hasil;
+  }
+
+  // Contoh populasi
+  $populasi = [
+  1 => [
+  'dosen' => 'Dosen 1',
+  'kuota' => 2,
+  'bidang_keilmuan' => ['Information System', 'Business Intelligence'],
+  'mahasiswa' => [
+  'Mahasiswa 1' => 'Information System',
+  'Mahasiswa 2' => 'Information System',
+  'Mahasiswa 3' => 'Business Intelligence',
+  'Mahasiswa 4' => 'Business Intelligence',
+  ]
+  ],
+  2 => [
+  'dosen' => 'Dosen 2',
+  'kuota' => 3,
+  'bidang_keilmuan' => ['Business Intelligence'],
+  'mahasiswa' => [
+  'Mahasiswa 1' => 'Information System',
+  'Mahasiswa 2' => 'Information System',
+  'Mahasiswa 3' => 'Information System',
+  'Mahasiswa 4' => 'Information System',
+  'Mahasiswa 5' => 'Information System',
+  ]
+  ],
+  3 => [
+  'dosen' => 'Dosen 3',
+  'kuota' => 2,
+  'bidang_keilmuan' => ['Information System'],
+  'mahasiswa' => [
+  'Mahasiswa 1' => 'Information System',
+  'Mahasiswa 2' => 'Information System',
+  'Mahasiswa 3' => 'Information System',
+  'Mahasiswa 4' => 'Information System',
+  ]
+  ],
+
+  4 => [
+  'dosen' => 'Dosen 3',
+  'kuota' => 2,
+  'bidang_keilmuan' => ['Information System'],
+  'mahasiswa' => [
+  'Mahasiswa 1' => 'Information System',
+  'Mahasiswa 2' => 'Information System',
+  'Mahasiswa 3' => 'Information System',
+  'Mahasiswa 4' => 'Information System',
+  ]
+  ],
+
+  5 => [
+  'dosen' => 'Dosen 3',
+  'kuota' => 2,
+  'bidang_keilmuan' => ['Information System'],
+  'mahasiswa' => [
+  'Mahasiswa 1' => 'Information System',
+  'Mahasiswa 2' => 'Information System',
+  'Mahasiswa 3' => 'Information System',
+  'Mahasiswa 4' => 'Information System',
+  ]
+  ]];
+
+  tampilkan_populasi($populasi);
+
+  echo fitnessPenalty($populasi);
+
+?>
+
+
