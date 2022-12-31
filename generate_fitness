@@ -93,7 +93,6 @@ function tampilkan_populasi($populasi) {
     echo "</tr>";
     }
     echo "</table>";
-    return $hasil;
   }
 
   // Contoh populasi
@@ -159,7 +158,7 @@ function tampilkan_populasi($populasi) {
 
   tampilkan_populasi($populasi);
 
-  echo fitnessPenalty($populasi);
+  fitnessPenalty($populasi);
 
 ?>
 
